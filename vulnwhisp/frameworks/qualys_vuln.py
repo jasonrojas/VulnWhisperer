@@ -71,11 +71,10 @@ class qualysUtils:
         self.logger = logging.getLogger('qualysUtils')
 
     def iso_to_epoch(self, dt):
-        self.logger.info('HELO')
         out = arrow.get(dt).timestamp
         re = arrow.get(out).format('YYYY-MM-DD HH:mm:ss ZZ')
         self.logger.info('Converted {} to {}'.format(dt, out))
-        self.logger.info('Converted {} to {} which looks like {}'.format(dt, out, re))
+        self.logger.info('Re-Converted {} to {} which looks like {}'.format(dt, out, re))
         return out
 
 
