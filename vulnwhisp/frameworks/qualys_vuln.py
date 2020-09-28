@@ -6,7 +6,7 @@ import logging
 import sys
 import xml.etree.ElementTree as ET
 
-import dateutil.parser as dp
+import arrow
 import pandas as pd
 import qualysapi
 
@@ -71,8 +71,11 @@ class qualysUtils:
         self.logger = logging.getLogger('qualysUtils')
 
     def iso_to_epoch(self, dt):
-        out = dp.parse(dt).strftime('%s')
+        self.logger.info('HELO')
+        out = arrow.get(dt).timestamp
+        re = arrow.get(out).format('YYYY-MM-DD HH:mm:ss ZZ')
         self.logger.info('Converted {} to {}'.format(dt, out))
+        self.logger.info('Converted {} to {} which looks like {}'.format(dt, out, re))
         return out
 
 
@@ -117,6 +120,15 @@ class qualysVulnScan:
             scan_report = scan_report.filter(keep_columns)
             scan_report['severity'] = scan_report['severity'].astype(int).astype(str)
             scan_report['qid'] = scan_report['qid'].astype(int).astype(str)
+            scan_report['ec2meta'] = None
+            metadata = scan_report[(scan_report['category'] == 'Information gathering') & (scan_report['title'] == 'Extended attributes for EC2 instance.')].to_dict(orient='records')
+            self.logger.info('Found EC2 metadata for {} IPs'.format(len(metadata)))
+            if (len(metadata) > 0):
+                for metadata_row in metadata:
+                    self.logger.info('Updating IP {}'.format(metadata_row['ip']))
+                    scan_report.loc[scan_report['ip'] == metadata_row['ip'], 'ec2meta'] = metadata_row['results']
+
+            return scan_report
         else:
             self.logger.warn('Scan ID {} has no vulnerabilities, skipping.'.format(scan_id))
             return scan_report

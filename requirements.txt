@@ -10,3 +10,4 @@ bottle
 coloredlogs
 qualysapi==6.0.0
 httpretty
+arrow
